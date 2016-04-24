@@ -33,8 +33,9 @@ describe Report do
     @my = Report.new
   end
 
-  it 'レポートが出力される' do
-    report <<-EOS
+  # HTMLレポートが出力される
+  it 'should output HTML report.' do
+    report = <<-EOS
 <html>
  <head>
  <title>月次報告</title>
