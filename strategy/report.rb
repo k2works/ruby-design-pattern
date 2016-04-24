@@ -1,35 +1,5 @@
 require 'minitest/autorun'
 
-class Formatter
-  def output_report( title, text)
-    raise 'Abstract method called'
-  end
-end
-
-class HTMLFormatter < Formatter
-  def output_report(context)
-    puts('<html>')
-    puts('  <head>')
-    puts("    <title>#{context.title}</title>")
-    puts('  </head>')
-    puts('  <body>')
-    context.text.each do |line|
-      puts("     <p>#{line}</p>" )
-    end
-    puts('  </body>')
-    puts('</html>')
-  end
-end
-
-class PlainTextFormatter < Formatter
-  def output_report(context)
-    puts("***** #{context.title} *****")
-    context.text.each do |line|
-      puts(line)
-    end
-  end
-end
-
 class Report
   attr_reader :title, :text
   attr_accessor :formatter
@@ -46,7 +16,31 @@ class Report
 
 end
 
-describe Formatter do
+class HTMLFormatter
+  def output_report(context)
+    puts('<html>')
+    puts('  <head>')
+    puts("    <title>#{context.title}</title>")
+    puts('  </head>')
+    puts('  <body>')
+    context.text.each do |line|
+      puts("     <p>#{line}</p>" )
+    end
+    puts('  </body>')
+    puts('</html>')
+  end
+end
+
+class PlainTextFormatter
+  def output_report(context)
+    puts("***** #{context.title} *****")
+    context.text.each do |line|
+      puts(line)
+    end
+  end
+end
+
+describe Report do
   # HTMLレポートが出力される
   it 'should output HTML report.' do
     @my = Report.new(HTMLFormatter.new)
