@@ -1,3 +1,6 @@
+require './report'
+require 'minitest/autorun'
+
 describe Report do
   # HTMLレポートが出力される
   it 'should output HTML report.' do

@@ -1,5 +1,3 @@
-require 'minitest/autorun'
-
 #
 # == 基底レポートクラス
 #
