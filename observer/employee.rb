@@ -1,24 +1,29 @@
 require 'minitest/autorun'
 
-class Payroll
-  def update( changed_employee )
-    puts("#{changed_employee.name}のために小切手を切ります！")
-    puts("彼の給料はいま#{changed_employee.salary}です！")
+module Subject
+  def initialize
+    @observers=[]
+  end
+
+  def add_observer(&observer)
+    @observers << observer
+  end
+
+  def delete_observer(observer)
+    @observers.delete(observer)
+  end
+
+  def notify_observers
+    @observers.each do |observer|
+      observer.call(self)
+    end
   end
 end
 
-class TaxMan
-  def update( changed_employee )
-    puts("#{changed_employee.name}に新しい税金の請求書を送ります！")
-  end
-end
-
-require 'observer'
 class Employee
-  include Observable
-
+  include Subject
   attr_reader :name, :address
-  attr_accessor :ttile, :salary
+  attr_accessor :title, :salary
 
   def initialize( name, title, salary)
     super()
@@ -29,42 +34,25 @@ class Employee
 
   def salary=(new_salary)
     @salary = new_salary
-    changed
-    notify_observers(self)
+    notify_observers
   end
 end
 
 
-describe Payroll do
-  # 経理部門はFredの賃金の変更を知ることができる
-  it "should know the change of fred's salary." do
+describe Employee do
+  # Fredの賃金の変更を通知できる
+  it "should notify the change of fred's salary." do
     fred = Employee.new('Fred','Crane Operator', 30000)
-
-    payroll = Payroll.new
-    fred.add_observer( payroll )
+    fred.add_observer do |changed_employee|
+      puts("Cut a new check for #{changed_employee.name}!")
+      puts("His salary is now #{changed_employee.salary}!")
+    end
 
     output = <<-EOS
-Fredのために小切手を切ります！
-彼の給料はいま35000です！
+Cut a new check for Fred!
+His salary is now 35000!
     EOS
 
     proc {fred.salary = 35000}.must_output output
   end
 end
-
-describe TaxMan do
-  # 税務署員はFredの賃金の変更を知ることができる
-  it "should know then change of fred's salary." do
-    fred = Employee.new('Fred','Crane Operator', 30000)
-
-    tax_man = TaxMan.new
-    fred.add_observer( tax_man )
-
-    output = <<-EOS
-Fredに新しい税金の請求書を送ります！
-    EOS
-
-    proc {fred.salary = 35000}.must_output output
-  end
-end
-
