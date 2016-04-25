@@ -13,7 +13,7 @@ class TaxMan
   end
 end
 
-class Subject
+module Subject
   def initialize
     @observers=[]
   end
@@ -33,7 +33,9 @@ class Subject
   end
 end
 
-class Employee < Subject
+class Employee
+  include Subject
+
   attr_reader :name, :address
   attr_accessor :ttile, :salary
 
