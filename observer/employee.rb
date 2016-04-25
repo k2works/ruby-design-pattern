@@ -25,14 +25,17 @@ class Employee
     @name = name
     @title = title
     @salary = salary
+    @title_changed = false
+    @salary_changed = false
   end
 
   def salary=(new_salary)
     old_salary = @salary
     @salary = new_salary
     if old_salary != new_salary
-      changed
-      notify_observers(self)
+      @salary_changed = true
+    else
+      @salary_changed = false
     end
   end
 
@@ -40,21 +43,63 @@ class Employee
     old_title = @title
     @title = new_title
     if old_title != new_title
-      changed = true
-      notify_observers(self)
+      @title_changed = true
+    else
+      @title_changed = false
+    end
+  end
+
+  def changes_complete
+    if @salary_changed == true
+      if @title_changed == true
+        changed
+        notify_observers(self)
+        return true
+      end
+    end
+    if @salary_changed == true
+      if @title_changed == false
+        return check_salary_title_table
+      end
+    end
+    if @salary_changed == false
+      if @title_changed == true
+        return check_salary_title_table
+      end
+    end
+  end
+
+  private
+  def check_salary_title_table
+    case @title
+      when 'Crane Operator'
+        if @salary <= 50000
+          changed
+          notify_observers(self)
+          true
+        end
+      when 'Vice President of Sales'
+        if @salary > 50000
+          changed
+          notify_observers(self)
+          true
+        end
+      else
+        false
     end
   end
 end
 
 describe Employee do
   # 給与が変更されたら通知する
-  it "should notify whne salary changed." do
+  it "should notify when salary changed." do
     fred = Employee.new('Fred','Crane Operator', 30000)
 
     payroll = Payroll.new
     fred.add_observer( payroll )
+    fred.salary = 35000
 
-    proc {fred.salary = 35000}.wont_be_nil
+    fred.changes_complete.must_equal true
   end
   # 肩書きが変更されたら通知する
   it "should notify when title changed." do
@@ -62,8 +107,10 @@ describe Employee do
 
     payroll = Payroll.new
     fred.add_observer( payroll )
+    fred.salary = 50001
+    fred.title = 'Vice President of Sales'
 
-    proc {fred.title = 'Vice President of Sales'}.wont_be_nil
+    fred.changes_complete.must_equal true
   end
   # 同じ給与で更新した場合は通知しない
   it "should not notify change of fred's salary when it is same salary." do
@@ -71,8 +118,9 @@ describe Employee do
 
     payroll = Payroll.new
     fred.add_observer( payroll )
+    fred.salary = 30000
 
-    proc {fred.salary = 30000}.must_output nil
+    proc { fred.changes_complete }.must_output ''
   end
   # 同じ肩書きで更新した場合は通知しない
   it "should not notify change of fred's title when it is same title." do
@@ -80,8 +128,30 @@ describe Employee do
 
     payroll = Payroll.new
     fred.add_observer( payroll )
+    fred.title = 'Crane Operator'
 
-    proc {fred.title = 'Crane Operator'}.must_output nil
+    proc { fred.changes_complete }.must_output ''
+  end
+  # 肩書きと一貫性のない更新は通知しない
+  it "should not notify change which is inconsistent fred's title" do
+    fred = Employee.new('Fred','Crane Operator', 30000)
+
+    payroll = Payroll.new
+    fred.add_observer( payroll )
+    fred.salary = 1000000
+
+    proc { fred.changes_complete }.must_output ''
+  end
+  # 肩書きと一貫性のある更新は通知する
+  it "should notify change which is consistent in fred's title" do
+    fred = Employee.new('Fred','Crane Operator', 30000)
+
+    payroll = Payroll.new
+    fred.add_observer( payroll )
+    fred.title = 'Vice President of Sales'
+    fred.salary = 1000000
+
+    proc { fred.changes_complete }.wont_be_nil
   end
 end
 
@@ -97,8 +167,8 @@ describe Payroll do
 Fredのために小切手を切ります！
 彼の給料はいま35000です！
     EOS
-
-    proc {fred.salary = 35000}.must_output output
+    fred.salary = 35000
+    proc { fred.changes_complete }.must_output output
   end
 end
 
@@ -113,8 +183,8 @@ describe TaxMan do
     output = <<-EOS
 Fredに新しい税金の請求書を送ります！
     EOS
-
-    proc {fred.salary = 35000}.must_output output
+    fred.salary = 35000
+    proc { fred.changes_complete }.must_output output
   end
 end
 
