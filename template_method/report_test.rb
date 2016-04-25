@@ -1,4 +1,6 @@
 require './report'
+require './html_report'
+require './plaine_text_report'
 require 'minitest/autorun'
 
 describe Report do
