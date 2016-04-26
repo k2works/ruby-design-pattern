@@ -1,3 +1,9 @@
+require './make_batter_task'
+require './fill_pan_task'
+require './bake_task'
+require './frost_task'
+require './lick_spoon_task'
+
 class MakeCakeTask < CompositeTask
   def initialize
     super('Make cake')

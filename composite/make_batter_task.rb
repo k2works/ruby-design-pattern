@@ -1,3 +1,7 @@
+require './add_dry_ingredients_task'
+require './add_liquids_task'
+require './mix_task'
+
 class MakeBatterTask < CompositeTask
   def initialize
     super('Make batter')
