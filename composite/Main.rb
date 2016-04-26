@@ -12,6 +12,10 @@ class Task
   def get_time_required
     0.0
   end
+
+  def total_number_basic_tasks
+    1
+  end
 end
 
 class AddDryIngredientsTask < Task
@@ -73,6 +77,12 @@ class CompositeTask < Task
 
   def []=(index, new_value)
     @sub_tasks[index] = new_value
+  end
+
+  def total_number_basic_tasks
+    total = 0
+    @sub_tasks.each {|task| total += task.total_number_basic_tasks}
+    total
   end
 end
 
@@ -141,10 +151,16 @@ class MakeCakeTask < CompositeTask
 end
 
 describe MakeBatterTask do
+  before(:each) do
+    @batter = MakeBatterTask.new
+  end
   # バターを作るのに５分かかる
   it 'should take 5 minutes. ' do
-    batter = MakeBatterTask.new
-    batter.get_time_required.must_equal 5.0
+    @batter.get_time_required.must_equal 5.0
+  end
+  # バターを作る工程は全部で３工程ある
+  it 'should have 3 tasks' do
+    @batter.total_number_basic_tasks.must_equal 3
   end
 end
 
@@ -175,5 +191,9 @@ describe MakeCakeTask do
   it 'should be parent task of making batter task.' do
     @cake[0].name.must_equal 'Make batter'
     @cake[0].parent.name.must_equal 'Make cake'
+  end
+  # ケーキを焼く工程は全部で全部で７工程ある
+  it 'should have 7 tasks' do
+    @cake.total_number_basic_tasks.must_equal 7
   end
 end
