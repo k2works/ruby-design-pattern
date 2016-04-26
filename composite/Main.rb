@@ -2,9 +2,11 @@ require 'minitest/autorun'
 
 class Task
   attr_reader :name
+  attr_accessor :parent
 
   def initialize(name)
     @name = name
+    @parent = nil
   end
 
   def get_time_required
@@ -49,12 +51,14 @@ class CompositeTask < Task
     super(name)
     @sub_tasks = []
   end
-  def <<(task)
+  def add_sub_task(task)
     @sub_tasks << task
+    task.parent = self
   end
 
   def remove_sub_task(task)
     @sub_tasks.delete(task)
+    task.parent = nil
   end
 
   def get_time_required
@@ -75,9 +79,9 @@ end
 class MakeBatterTask < CompositeTask
   def initialize
     super('Make batter')
-    @sub_tasks << AddDryIngredientsTask.new
-    @sub_tasks << AddLiquidsTask.new
-    @sub_tasks << MixTask.new
+    add_sub_task( AddDryIngredientsTask.new )
+    add_sub_task( AddLiquidsTask.new )
+    add_sub_task( MixTask.new )
   end
 end
 
@@ -128,11 +132,11 @@ end
 class MakeCakeTask < CompositeTask
   def initialize
     super('Make cake')
-    @sub_tasks << MakeBatterTask.new
-    @sub_tasks << FillPanTask.new
-    @sub_tasks << BakeTask.new
-    @sub_tasks << FrostTask.new
-    @sub_tasks << LickSpoonTask.new
+    add_sub_task( MakeBatterTask.new )
+    add_sub_task( FillPanTask.new )
+    add_sub_task( BakeTask.new )
+    add_sub_task( FrostTask.new )
+    add_sub_task( LickSpoonTask.new )
   end
 end
 
@@ -166,5 +170,10 @@ describe MakeCakeTask do
     @cake[3].name.must_equal 'Bake'
     @cake[4].name.must_equal 'Frost'
     @cake[5].name.must_equal 'Lick spoon'
+  end
+  # ケーキを焼く工程はバターを作る工程の親工程である
+  it 'should be parent task of making batter task.' do
+    @cake[0].name.must_equal 'Make batter'
+    @cake[0].parent.name.must_equal 'Make cake'
   end
 end
