@@ -56,6 +56,15 @@ class ArrayIterator
 
     merged
   end
+
+  def change_resistant_for_each_element(array)
+    copy = Array.new(array)
+    i = 0
+    while i < copy.length
+      yield(copy[i])
+      i += 1
+    end
+  end
 end
 
 class Account
@@ -140,6 +149,23 @@ EOS
     i.merge(array1,array2).must_equal [1,2,3,3,4,5]
   end
 
+  #eachメソッドを使ってコードブロックで安全に配列の内容を順番に出力する
+  it "should output of array's content safely by code block with each method." do
+    a_in = ['red', 'green', 'blue', 'purple']
+    a_out = <<-EOS
+red
+blue
+purple
+    EOS
+    i = ArrayIterator.new(a_in)
+    a_in.delete('green')
+    proc { i.change_resistant_for_each_element(a_in) do |element|
+      puts(element)
+      if element == 'green'
+        element.delete(element)
+      end
+    end }.must_output a_out
+  end
 end
 
 describe Portfolio do
