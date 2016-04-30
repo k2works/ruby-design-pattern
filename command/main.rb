@@ -21,6 +21,9 @@ class Command
 
   def execute
   end
+
+  def unexecute
+  end
 end
 
 class CreateFile < Command
@@ -35,6 +38,10 @@ class CreateFile < Command
     f.write(@contents)
     f.close
   end
+
+  def unexecute
+    File.delete(@path)
+  end
 end
 
 class DeleteFile < Command
@@ -45,6 +52,14 @@ class DeleteFile < Command
 
   def execute
     File.delete(@path)
+  end
+
+  def unexecute
+    if @contents
+      f = File.open(@path, "w")
+      f.write(@contents)
+      f.close
+    end
   end
 end
 
@@ -62,20 +77,24 @@ end
 
 class CompositeCommand < Command
   def initialize
-    @command = []
+    @commands = []
   end
 
   def add_command(cmd)
-    @command << cmd
+    @commands << cmd
   end
 
   def execute
-    @command.each {|cmd| cmd.execute}
+    @commands.each {|cmd| cmd.execute}
+  end
+
+  def unexecute
+    @commands.reverse.each {|cmd| cmd.unexecute }
   end
 
   def description
     description = ''
-    @command.each {|cmd| description += cmd.description + "\n"}
+    @commands.each {|cmd| description += cmd.description + "\n"}
     description
   end
 end
