@@ -58,6 +58,35 @@ class ArrayIterator
   end
 end
 
+class Account
+  attr_accessor :name, :balance
+
+  def initialize(name, balance)
+    @name = name
+    @balance = balance
+  end
+
+  def <=>(other)
+    balance <=> other.balance
+  end
+end
+
+class Portfolio
+  include Enumerable
+
+  def initialize
+    @accounts = []
+  end
+
+  def each(&block)
+    @accounts.each(&block)
+  end
+
+  def add_account(account)
+    @accounts << account
+  end
+end
+
 describe ArrayIterator do
   #配列の内容を順番に出力する
   it "should output of array's content." do
@@ -109,6 +138,27 @@ EOS
     array2 = [3,4,5]
     i = ArrayIterator.new(Array.new)
     i.merge(array1,array2).must_equal [1,2,3,3,4,5]
+  end
+
+end
+
+describe Portfolio do
+  before(:each) do
+    @portfolio = Portfolio.new
+  end
+
+  #ポートフォリの口座に$2000より多くの残高ある
+  it "should have account which over 2000." do
+    @portfolio.add_account(Account.new('Tom',1000))
+    @portfolio.add_account(Account.new('Jerry',2001))
+    @portfolio.any? {|account| account.balance > 2000}.must_equal true
+  end
+
+  #すべての口座の残高が$10以上ある
+  it "should have all accounts which over 10." do
+    @portfolio.add_account(Account.new('Tom',10))
+    @portfolio.add_account(Account.new('Jerry',10))
+    @portfolio.all? {|account| account.balance >= 10}.must_equal true
   end
 
 end
