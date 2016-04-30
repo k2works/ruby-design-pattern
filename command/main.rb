@@ -3,25 +3,21 @@ require 'minitest/autorun'
 class SlickButton
   attr_accessor :command
 
-  def initialize(command)
-    @command = command
+  def initialize(&block)
+    @command = block
   end
 
   def on_button_push
-    @command.execute if @command
-  end
-end
-
-class SaveCommand
-  def execute
-    puts '保存しました'
+    @command.call if @command
   end
 end
 
 describe SlickButton do
   # 保存ボタンを押す
   it 'should putout message when it pushed.' do
-    save_button = SlickButton.new(SaveCommand.new)
-    proc {save_button.on_button_push}.must_output "保存しました\n"
+    new_button = SlickButton.new do
+      puts '保存しました'
+    end
+    proc {new_button.on_button_push}.must_output "保存しました\n"
   end
 end
