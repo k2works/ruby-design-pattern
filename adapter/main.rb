@@ -124,29 +124,29 @@ describe Renderer do
     output =<<EOS
 text:Hoge
 size:25.4
-color:Blue
+color:blue
 EOS
-    text_object = TextObject.new('Hoge',25.4,'Blue')
+    text_object = TextObject.new('Hoge',25.4,:blue)
     proc{@render.render(text_object)}.must_output output
   end
 
   # BritishTextObjectの内容が出力される
   it 'should output contents of BritishTextObject.' do
     output =<<EOS
-text:Hoge
+text:hello
 size:1.0
-color:Blue
+color:blue
 EOS
-    text_object = BritishTextObjectAdapter.new(BritishTextObject.new('Hoge',25.4,'Blue'))
+    text_object = BritishTextObjectAdapter.new(BritishTextObject.new('hello',25.4,:blue))
     proc{@render.render(text_object)}.must_output output
   end
 
   # BritishTextObjectの内容が出力される
   it 'should output contents of BritishTextObject.' do
     output =<<EOS
-text:Hoge
+text:hello
 size:1.0
-color:Blue
+color:blue
 EOS
 
     class BritishTextObject
@@ -163,7 +163,34 @@ EOS
       end
     end
 
-    text_object = BritishTextObject.new('Hoge',25.4,'Blue')
+    text_object = BritishTextObject.new('hello',25.4,:blue)
     proc{@render.render(text_object)}.must_output output
+  end
+
+  # BritishTextObjectの内容が出力される
+  it 'should output contents of BritishTextObject.' do
+    output =<<EOS
+text:hello
+size:2.0
+color:blue
+EOS
+
+    bto = BritishTextObject.new('hello',50.8, :blue)
+
+    class << bto
+      def color
+        colour
+      end
+
+      def text
+        string
+      end
+
+      def size_inches
+        return size_mm / 25.4
+      end
+    end
+
+    proc{@render.render(bto)}.must_output output
   end
 end
