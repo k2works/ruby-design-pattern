@@ -1,84 +1,9 @@
 require 'minitest/autorun'
-
-class BankAccount
-  attr_reader :balance
-
-  def initialize(starting_balance=0)
-    @balance = starting_balance
-  end
-
-  def deposit(amount)
-    @balance += amount
-  end
-
-  def withdraw(amount)
-    @balance -= amount
-  end
-end
-
-class BankAccountProxy
-  def initialize(real_object)
-    @real_object = real_object
-  end
-
-  def balance
-    @real_object.balance
-  end
-
-  def deposit(amount)
-    @real_object.deposit(amount)
-  end
-
-  def withdraw(amount)
-    @real_object.withdraw(amount)
-  end
-end
-
-require 'etc'
-
-class AccountProtectionProxy
-  def initialize(real_account, owner_name)
-    @subject = real_account
-    @owner_name = owner_name
-  end
-
-  def method_missing(name, *args)
-    check_access
-    @subject.send( name, *args )
-  end
-
-  def check_access
-    if Etc.getlogin != @owner_name
-      raise "Illegal access: #{Etc.getlogin} cannot access account."
-    end
-  end
-end
-
-class VirtualAccountProxy
-  def initialize(&creation_block)
-    @creation_block = creation_block
-  end
-
-  def method_missing(name, *args)
-    s = subject
-    s.send( name, *args)
-  end
-
-  def subject
-    @subject || (@subject = @creation_block.call)
-  end
-end
-
-class AccountProxy
-  def initialize(real_account)
-    @subject = real_account
-  end
-
-  def method_missing(name, *args)
-    puts("Delegating #{name} message to subject.")
-    @subject.send(name, *args)
-  end
-end
+require './bank_account'
+require './bank_account_proxy'
+require './account_protection_proxy'
+require './virtual_account_proxy'
+require './account_proxy'
 
 describe BankAccount do
   # 銀行口座の残高は140になる
