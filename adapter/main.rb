@@ -140,4 +140,30 @@ EOS
     text_object = BritishTextObjectAdapter.new(BritishTextObject.new('Hoge',25.4,'Blue'))
     proc{@render.render(text_object)}.must_output output
   end
+
+  # BritishTextObjectの内容が出力される
+  it 'should output contents of BritishTextObject.' do
+    output =<<EOS
+text:Hoge
+size:1.0
+color:Blue
+EOS
+
+    class BritishTextObject
+      def color
+        return colour
+      end
+
+      def text
+        return string
+      end
+
+      def size_inches
+        return size_mm / 25.4
+      end
+    end
+
+    text_object = BritishTextObject.new('Hoge',25.4,'Blue')
+    proc{@render.render(text_object)}.must_output output
+  end
 end
