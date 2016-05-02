@@ -1,89 +1,10 @@
 require 'minitest/autorun'
-
-class Encrypter
-  def initialize(key)
-    @key = key
-  end
-
-  def encrypt(reader, writer)
-    key_index = 0
-    while not reader.eof?
-      encrypted_char = reader.getbyte ^ @key.getbyte(key_index)
-      writer.putc(encrypted_char)
-      key_index = (key_index + 1) % @key.size
-    end
-  end
-end
-
-class StringIOAdapter
-  def initialize(string)
-    @string = string
-    @position = 0
-  end
-
-  def getbyte
-    raise EOFError if @position >= @string.length
-
-    ch = @string.getbyte(@position)
-    @position += 1
-    ch
-  end
-
-  def eof?
-    return @position >= @string.length
-  end
-end
-
-class Renderer
-  def render(text_object)
-    text = text_object.text
-    size = text_object.size_inches
-    color = text_object.color
-
-    # 文字列を表示します・・・
-    puts "text:#{text}"
-    puts "size:#{size}"
-    puts "color:#{color}"
-  end
-end
-
-class TextObject
-  attr_reader :text, :size_inches, :color
-
-  def initialize(text, size_inches, color)
-    @text = text
-    @size_inches = size_inches
-    @color = color
-  end
-end
-
-class BritishTextObject
-  attr_reader :string, :size_mm, :colour
-
-  def initialize(string, size_mm, colour)
-    @string = string
-    @size_mm = size_mm
-    @colour = colour
-  end
-end
-
-class BritishTextObjectAdapter < TextObject
-  def initialize(bto)
-    @bto = bto
-  end
-
-  def text
-    return @bto.string
-  end
-
-  def size_inches
-    return @bto.size_mm / 25.4
-  end
-
-  def color
-    return @bto.colour
-  end
-end
+require './encrypter'
+require './string_io_adapter'
+require './renderer'
+require './text_object'
+require './british_text_object'
+require './british_text_object_adapter'
 
 describe Encrypter do
   before(:each) do
