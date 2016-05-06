@@ -58,6 +58,68 @@ class SimpleLogger
   end
 end
 
+class ClassBasedLogger
+  ERROR = 1
+  WARNING = 2
+  INFO = 3
+  @@log = File.open('log.txt','w')
+  @@level = WARNING
+
+  def self.error(msg)
+    @@log.puts(msg)
+    @@log.flush
+  end
+
+  def self.warning(msg)
+    @@log.puts(msg) if @@level >= WARNING
+    @@log.flush
+  end
+
+  def self.info(msg)
+    @@log.puts(msg) if @@level >= INFO
+    @@log.flush
+  end
+
+  def self.level=(new_level)
+    @@level = new_level
+  end
+
+  def self.level
+    @@level
+  end
+end
+
+module ModuleBasedLogger
+  ERROR = 1
+  WARNING = 2
+  INFO = 3
+  @@log = File.open("log.txt","w")
+  @@level = WARNING
+
+  def self.error(msg)
+    @@log.puts(msg)
+    @@log.flush
+  end
+
+  def self.warning(msg)
+    @@log.puts(msg) if @@level >= WARNING
+    @@log.flush
+  end
+
+  def self.info(msg)
+    @@log.puts(msg) if @@level >= INFO
+    @@log.flush
+  end
+
+  def self.level=(new_level)
+    @@level = new_level
+  end
+
+  def self.level
+    @@level
+  end
+end
+
 describe ClassVariableTester do
   # １つ目のインスタンスは同じ値を持つ
   it 'should have same value.' do
@@ -120,6 +182,62 @@ describe SimpleLogger do
   # ERRORレベルでログを保存する
   it 'should output logs with error level.' do
     SimpleLogger.instance.error('HAL-9000 機能停止、緊急動作を実行します！')
+    file = File.open('log.txt')
+    file.readlines.must_include "HAL-9000 機能停止、緊急動作を実行します！\n"
+    file.close
+  end
+end
+
+describe ClassBasedLogger do
+  # INFOレベルでログを保存する
+  it 'should output logs with info level.' do
+    ClassBasedLogger.level= SimpleLogger::INFO
+    ClassBasedLogger.info('コンピュータがチェスゲームに勝ちました。')
+    file = File.open('log.txt')
+    file.readlines.must_include "コンピュータがチェスゲームに勝ちました。\n"
+    file.close
+  end
+
+  # WARNINGレベルでログを保存する
+  it 'should output logs with warning level.' do
+    ClassBasedLogger.level= SimpleLogger::WARNING
+    ClassBasedLogger.warning('ユニットAE-35の故障が予測されました。')
+    file = File.open('log.txt')
+    file.readlines.must_include "ユニットAE-35の故障が予測されました。\n"
+    file.close
+  end
+
+  # ERRORレベルでログを保存する
+  it 'should output logs with error level.' do
+    ClassBasedLogger.error('HAL-9000 機能停止、緊急動作を実行します！')
+    file = File.open('log.txt')
+    file.readlines.must_include "HAL-9000 機能停止、緊急動作を実行します！\n"
+    file.close
+  end
+end
+
+describe ModuleBasedLogger do
+  # INFOレベルでログを保存する
+  it 'should output logs with info level.' do
+    ModuleBasedLogger.level= SimpleLogger::INFO
+    ModuleBasedLogger.info('コンピュータがチェスゲームに勝ちました。')
+    file = File.open('log.txt')
+    file.readlines.must_include "コンピュータがチェスゲームに勝ちました。\n"
+    file.close
+  end
+
+  # WARNINGレベルでログを保存する
+  it 'should output logs with warning level.' do
+    ModuleBasedLogger.level= SimpleLogger::WARNING
+    ModuleBasedLogger.warning('ユニットAE-35の故障が予測されました。')
+    file = File.open('log.txt')
+    file.readlines.must_include "ユニットAE-35の故障が予測されました。\n"
+    file.close
+  end
+
+  # ERRORレベルでログを保存する
+  it 'should output logs with error level.' do
+    ModuleBasedLogger.error('HAL-9000 機能停止、緊急動作を実行します！')
     file = File.open('log.txt')
     file.readlines.must_include "HAL-9000 機能停止、緊急動作を実行します！\n"
     file.close
