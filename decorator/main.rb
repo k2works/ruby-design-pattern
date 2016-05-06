@@ -68,6 +68,35 @@ class TimeStampingWriter < WriterDecorator
   end
 end
 
+describe SimpleWriter do
+  # タイムスタンプ付きで出力される
+  it 'should output with time stamp.' do
+    input = 'Hello out there'
+    output =<<-EOS
+#{Time.new}: Hello out there
+    EOS
+
+    w = SimpleWriter.new('out')
+
+    class << w
+
+      alias old_write_line write_line
+
+      def write_line(line)
+        old_write_line("#{Time.new}: #{line}")
+      end
+
+    end
+
+    w.write_line(input)
+    w.close
+    file = File.open('out')
+    proc{puts file.read}.must_output output
+    file.close
+  end
+
+end
+
 describe NumberingWriter do
   # 行番号付きで出力される
   it 'should output with line number.' do
