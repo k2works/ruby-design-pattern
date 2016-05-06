@@ -1,88 +1,11 @@
 require 'minitest/autorun'
-
-class SimpleWriter
-  def initialize(path)
-    @file = File.open(path,'w')
-  end
-
-  def write_line(line)
-    @file.print(line)
-    @file.print("\n")
-  end
-
-  def pos
-    @file.pos
-  end
-
-  def rewind
-    @file.rewind
-  end
-
-  def close
-    @file.close
-  end
-end
-
-require 'forwardable'
-
-class WriterDecorator
-  extend Forwardable
-
-  def_delegators :@real_writer, :write_line, :rewind, :pos, :close
-
-  def initialize(real_writer)
-    @real_writer = real_writer
-  end
-end
-
-class NumberingWriter < WriterDecorator
-  def initialize(real_writer)
-    super(real_writer)
-    @line_number = 1
-  end
-
-  def write_line(line)
-    @real_writer.write_line("#{@line_number}: #{line}")
-    @line_number += 1
-  end
-end
-
-class CheckSummingWriter < WriterDecorator
-  attr_reader :check_sum
-
-  def initialize(real_writer)
-    @real_writer = real_writer
-    @check_sum = 0
-  end
-
-  def write_line(line)
-    line.each_byte { |byte| @check_sum = (@check_sum + byte) % 256 }
-    @check_sum += "\n".ord % 256
-    @real_writer.write_line(line)
-  end
-end
-
-class TimeStampingWriter < WriterDecorator
-  def write_line(line)
-    @real_writer.write_line("#{Time.new}: #{line}")
-  end
-end
-
-module TimeStampingWriterModule
-  def write_line(line)
-    super("#{Time.new}: #{line}")
-  end
-end
-
-module NumberingWriterModule
-  attr_reader :line_number
-
-  def write_line(line)
-    @line_number = 1 unless @line_number
-    super("#{@line_number}: #{line}")
-    @line_number += 1
-  end
-end
+require './simple_writer'
+require './numbering_writer'
+require './writer_decorator'
+require './check_summing_writer'
+require './time_stamping_writer'
+require './numbering_writer_module'
+require './time_stamping_writer_module'
 
 describe SimpleWriter do
   # タイムスタンプ付きで出力される
