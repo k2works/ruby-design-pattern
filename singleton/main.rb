@@ -27,6 +27,33 @@ class SomeClass
   end
 end
 
+class SimpleLogger
+  attr_accessor :level
+
+  ERROR = 1
+  WARNING = 2
+  INFO = 3
+
+  def initialize
+    @log = File.open("log.txt", "w")
+    @level = WARNING
+  end
+
+  def error(msg)
+    @log.puts(msg)
+    @log.flush
+  end
+
+  def warning(msg)
+    @log.puts(msg) if @level >= WARNING
+  end
+
+  def info(msg)
+    @log.puts(msg) if @level >= INFO
+    @log.flush
+  end
+end
+
 describe ClassVariableTester do
   # １つ目のインスタンスは同じ値を持つ
   it 'should have same value.' do
@@ -57,4 +84,16 @@ describe SomeClass do
     proc{SomeClass.class_level_method2}.must_output "hello from the class method2\n"
   end
 
+end
+
+describe SimpleLogger do
+  # INFOレベルでログを保存する
+  it 'should output logs with info level.' do
+    logger = SimpleLogger.new
+    logger.level = SimpleLogger::INFO
+    logger.info('1番目の処理を実行')
+
+    logger.level.must_equal SimpleLogger::INFO
+    proc{puts File.read('log.txt')}.must_output "1番目の処理を実行\n"
+  end
 end
