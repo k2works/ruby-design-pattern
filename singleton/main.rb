@@ -46,11 +46,18 @@ class SimpleLogger
 
   def warning(msg)
     @log.puts(msg) if @level >= WARNING
+    @log.flush
   end
 
   def info(msg)
     @log.puts(msg) if @level >= INFO
     @log.flush
+  end
+
+  @@instance = SimpleLogger.new
+
+  def self.instance
+    return @@instance
   end
 end
 
@@ -87,13 +94,37 @@ describe SomeClass do
 end
 
 describe SimpleLogger do
+  # 全く同じロガーオブジェクトが返される
+  it 'should same logger object.' do
+    logger1 = SimpleLogger.instance
+    logger2 = SimpleLogger.instance
+
+    logger2.must_be_same_as logger1
+  end
+
   # INFOレベルでログを保存する
   it 'should output logs with info level.' do
-    logger = SimpleLogger.new
-    logger.level = SimpleLogger::INFO
-    logger.info('1番目の処理を実行')
+    SimpleLogger.instance.level= SimpleLogger::INFO
+    SimpleLogger.instance.info('コンピュータがチェスゲームに勝ちました。')
+    file = File.open('log.txt')
+    file.readlines.must_include "コンピュータがチェスゲームに勝ちました。\n"
+    file.close
+  end
 
-    logger.level.must_equal SimpleLogger::INFO
-    proc{puts File.read('log.txt')}.must_output "1番目の処理を実行\n"
+  # WARNINGレベルでログを保存する
+  it 'should output logs with warning level.' do
+    SimpleLogger.instance.level= SimpleLogger::WARNING
+    SimpleLogger.instance.warning('ユニットAE-35の故障が予測されました。')
+    file = File.open('log.txt')
+    file.readlines.must_include "ユニットAE-35の故障が予測されました。\n"
+    file.close
+  end
+
+  # ERRORレベルでログを保存する
+  it 'should output logs with error level.' do
+    SimpleLogger.instance.error('HAL-9000 機能停止、緊急動作を実行します！')
+    file = File.open('log.txt')
+    file.readlines.must_include "HAL-9000 機能停止、緊急動作を実行します！\n"
+    file.close
   end
 end
