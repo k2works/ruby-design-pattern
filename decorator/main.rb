@@ -68,6 +68,22 @@ class TimeStampingWriter < WriterDecorator
   end
 end
 
+module TimeStampingWriterModule
+  def write_line(line)
+    super("#{Time.new}: #{line}")
+  end
+end
+
+module NumberingWriterModule
+  attr_reader :line_number
+
+  def write_line(line)
+    @line_number = 1 unless @line_number
+    super("#{@line_number}: #{line}")
+    @line_number += 1
+  end
+end
+
 describe SimpleWriter do
   # タイムスタンプ付きで出力される
   it 'should output with time stamp.' do
@@ -95,6 +111,23 @@ describe SimpleWriter do
     file.close
   end
 
+  # タイムスタンプ付きで出力される
+  it 'should output with time stamp.' do
+    input = 'Hello out there'
+    output =<<-EOS
+1: #{Time.new}: Hello out there
+    EOS
+
+    w = SimpleWriter.new('out')
+    w.extend(NumberingWriterModule)
+    w.extend(TimeStampingWriterModule)
+
+    w.write_line(input)
+    w.close
+    file = File.open('out')
+    proc{puts file.read}.must_output output
+    file.close
+  end
 end
 
 describe NumberingWriter do
