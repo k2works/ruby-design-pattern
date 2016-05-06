@@ -1,144 +1,27 @@
 require 'minitest/autorun'
-
-class ClassVariableTester
-  @@class_count = 0
-
-  def initialize
-    @instance_count = 0
-  end
-
-  def increment
-    @@class_count = @@class_count + 1
-    @instance_count = @instance_count + 1
-  end
-
-  def to_s
-    "class_count: #{@@class_count} instance_count: #{@instance_count}"
-  end
-end
-
-class SomeClass
-  def self.class_level_method
-    puts('hello from the class method')
-  end
-
-  def SomeClass.class_level_method2
-    puts('hello from the class method2')
-  end
-end
-
-require 'singleton'
-
-class SimpleLogger
-  attr_accessor :level
-
-  ERROR = 1
-  WARNING = 2
-  INFO = 3
-
-  def initialize
-    @log = File.open("log.txt", "w")
-    @level = WARNING
-  end
-
-  def error(msg)
-    @log.puts(msg)
-    @log.flush
-  end
-
-  def warning(msg)
-    @log.puts(msg) if @level >= WARNING
-    @log.flush
-  end
-
-  def info(msg)
-    @log.puts(msg) if @level >= INFO
-    @log.flush
-  end
-end
-
-class SingletonLogger < SimpleLogger
-  include Singleton
-end
-
-class ClassBasedLogger
-  ERROR = 1
-  WARNING = 2
-  INFO = 3
-  @@log = File.open('log.txt','w')
-  @@level = WARNING
-
-  def self.error(msg)
-    @@log.puts(msg)
-    @@log.flush
-  end
-
-  def self.warning(msg)
-    @@log.puts(msg) if @@level >= WARNING
-    @@log.flush
-  end
-
-  def self.info(msg)
-    @@log.puts(msg) if @@level >= INFO
-    @@log.flush
-  end
-
-  def self.level=(new_level)
-    @@level = new_level
-  end
-
-  def self.level
-    @@level
-  end
-end
-
-module ModuleBasedLogger
-  ERROR = 1
-  WARNING = 2
-  INFO = 3
-  @@log = File.open("log.txt","w")
-  @@level = WARNING
-
-  def self.error(msg)
-    @@log.puts(msg)
-    @@log.flush
-  end
-
-  def self.warning(msg)
-    @@log.puts(msg) if @@level >= WARNING
-    @@log.flush
-  end
-
-  def self.info(msg)
-    @@log.puts(msg) if @@level >= INFO
-    @@log.flush
-  end
-
-  def self.level=(new_level)
-    @@level = new_level
-  end
-
-  def self.level
-    @@level
-  end
-end
+require './class_variable_tester'
+require './some_class'
+require './simple_logger'
+require './singleton_logger'
+require './class_based_logger'
+require './module_based_logger'
 
 describe ClassVariableTester do
+  before(:each) do
+    @c1 = ClassVariableTester.new
+    @c2 = ClassVariableTester.new
+  end
   # １つ目のインスタンスは同じ値を持つ
   it 'should have same value.' do
-    c1 = ClassVariableTester.new
-    c1.increment
-    c1.increment
-    proc{puts("c1: #{c1}")}.must_output "c1: class_count: 2 instance_count: 2\n"
+    @c1.increment
+    @c1.increment
+    proc{puts("c1: #{@c1}")}.must_output "c1: class_count: 2 instance_count: 2\n"
   end
 
   # ２つ目のインスタンスは異なる値を持つ
   it 'should not same value.' do
-    c1 = ClassVariableTester.new
-    c1.increment
-    c1.increment
-    c2 = ClassVariableTester.new
-    proc{puts("c2: #{c2}")}.must_output "c2: class_count: 4 instance_count: 0\n"
+    @c2.increment
+    proc{puts("c2: #{@c2}")}.must_output "c2: class_count: 3 instance_count: 1\n"
   end
 end
 
