@@ -122,8 +122,20 @@ class Pond
 end
 
 class Habitat < Pond
-  def initialize(*arge)
-    super
+  def initialize(number_animals, number_plants, organism_factory)
+    @organism_factory = organism_factory
+
+    @animals = []
+    number_animals.times do |i|
+      animal = @organism_factory.new_animal("動物#{i}")
+      @animals << animal
+    end
+
+    @plants = []
+    number_plants.times do |i|
+      plant = @organism_factory.new_plant("植物#{i}")
+      @plants << plant
+    end
   end
 end
 
@@ -168,6 +180,26 @@ class FrogAlgaePond < Pond
     else
       raise "Unknown organism type: #{type}"
     end
+  end
+end
+
+class PondOrganismFactory
+  def new_animal(name)
+    Duck.new(name)
+  end
+
+  def new_plant(name)
+    WaterLily.new(name)
+  end
+end
+
+class JungleOrganismFactory
+  def new_animal(name)
+    Tiger.new(name)
+  end
+
+  def new_plant(name)
+    Tree.new(name)
   end
 end
 
@@ -256,7 +288,7 @@ describe Habitat do
 トラ動物0は食べたいものを何でも食べます。
 トラ動物0は眠くなったら眠ります。
 EOS
-    habitat = Habitat.new(1,Tiger,4,Tree)
+    habitat = Habitat.new(1,4,JungleOrganismFactory.new)
     proc{habitat.simulate_one_day}.must_output output
   end
 
@@ -274,7 +306,7 @@ EOS
 アヒル動物0は静かに眠っています。
 アヒル動物1は静かに眠っています。
 EOS
-    habitat = Habitat.new(2,Duck,4,WaterLily)
+    habitat = Habitat.new(2,4,PondOrganismFactory.new)
     proc{habitat.simulate_one_day}.must_output output
   end
 end
