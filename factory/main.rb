@@ -56,6 +56,34 @@ class WaterLily
   end
 end
 
+class Tree
+  def initialize(name)
+    @name = name
+  end
+
+  def grow
+    puts("樹木#{@name}が高く育っています。")
+  end
+end
+
+class Tiger
+  def initialize(name)
+    @name = name
+  end
+
+  def eat
+    puts("トラ#{@name}は食べたいものを何でも食べます。")
+  end
+
+  def speak
+    puts("トラ#{@name}はガオーとほえています。")
+  end
+
+  def sleep
+    puts("トラ#{@name}は眠くなったら眠ります。")
+  end
+end
+
 class Pond
   def initialize(number_animals, animal_class,
                  number_plants, plant_class)
@@ -90,6 +118,12 @@ class Pond
     else
       raise "Unknow organism type: #{type}"
     end
+  end
+end
+
+class Habitat < Pond
+  def initialize(*arge)
+    super
   end
 end
 
@@ -208,4 +242,39 @@ EOS
     proc{pond.simulate_one_day}.must_output output
   end
 
+end
+
+describe Habitat do
+  # 生息環境には１匹のトラと４本の木がいる
+  it 'should be a tiger and four trees.' do
+    output =<<EOS
+樹木植物0が高く育っています。
+樹木植物1が高く育っています。
+樹木植物2が高く育っています。
+樹木植物3が高く育っています。
+トラ動物0はガオーとほえています。
+トラ動物0は食べたいものを何でも食べます。
+トラ動物0は眠くなったら眠ります。
+EOS
+    habitat = Habitat.new(1,Tiger,4,Tree)
+    proc{habitat.simulate_one_day}.must_output output
+  end
+
+  # 生息環境には２匹のアヒルと４つのスイレンがいる
+  it 'should be two ducks and four waterlilies.' do
+    output =<<EOS
+スイレン植物0は浮きながら日光を浴びて育ちます。
+スイレン植物1は浮きながら日光を浴びて育ちます。
+スイレン植物2は浮きながら日光を浴びて育ちます。
+スイレン植物3は浮きながら日光を浴びて育ちます。
+アヒル動物0がガーガー鳴いています。
+アヒル動物1がガーガー鳴いています。
+アヒル動物0は食事中です。
+アヒル動物1は食事中です。
+アヒル動物0は静かに眠っています。
+アヒル動物1は静かに眠っています。
+EOS
+    habitat = Habitat.new(2,Duck,4,WaterLily)
+    proc{habitat.simulate_one_day}.must_output output
+  end
 end
