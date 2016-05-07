@@ -1,226 +1,20 @@
 require 'minitest/autorun'
-
-class Duck
-  def initialize(name)
-    @name = name
-  end
-
-  def eat
-    puts("アヒル#{@name}は食事中です。")
-  end
-
-  def speak
-    puts("アヒル#{@name}がガーガー鳴いています。")
-  end
-
-  def sleep
-    puts("アヒル#{@name}は静かに眠っています。")
-  end
-end
-
-class Frog
-  def initialize(name)
-    @name = name
-  end
-
-  def eat
-    puts("カエル#{@name}は食事中です。")
-  end
-
-  def speak
-    puts("カエル#{@name}はゲロゲロと鳴いています。")
-  end
-
-  def sleep
-    puts("カエル#{@name}は眠りません。一晩中ゲロゲロ鳴いています。")
-  end
-end
-
-class Algae
-  def initialize(name)
-    @name = name
-  end
-
-  def grow
-    puts("藻#{@name}は日光を浴びて育ちます。")
-  end
-end
-
-class WaterLily
-  def initialize(name)
-    @name = name
-  end
-
-  def grow
-    puts("スイレン#{@name}は浮きながら日光を浴びて育ちます。")
-  end
-end
-
-class Tree
-  def initialize(name)
-    @name = name
-  end
-
-  def grow
-    puts("樹木#{@name}が高く育っています。")
-  end
-end
-
-class Tiger
-  def initialize(name)
-    @name = name
-  end
-
-  def eat
-    puts("トラ#{@name}は食べたいものを何でも食べます。")
-  end
-
-  def speak
-    puts("トラ#{@name}はガオーとほえています。")
-  end
-
-  def sleep
-    puts("トラ#{@name}は眠くなったら眠ります。")
-  end
-end
-
-class Pond
-  def initialize(number_animals, animal_class,
-                 number_plants, plant_class)
-    @animal_class = animal_class
-    @plant_class = plant_class
-
-    @animals = []
-    number_animals.times do |i|
-      animal = new_organism(:animal,"動物#{i}")
-      @animals << animal
-    end
-
-    @plants = []
-    number_plants.times do |i|
-      plant = new_organism(:plant,"植物#{i}")
-      @plants << plant
-    end
-  end
-
-  def simulate_one_day
-    @plants.each {|plant| plant.grow} unless @plants[0].nil?
-    @animals.each {|animal| animal.speak}
-    @animals.each {|animal| animal.eat}
-    @animals.each {|animal| animal.sleep}
-  end
-
-  def new_organism(type, name)
-    if type == :animal
-      @animal_class.new(name)
-    elsif type == :plant
-      @plant_class.new(name)
-    else
-      raise "Unknow organism type: #{type}"
-    end
-  end
-end
-
-class Habitat < Pond
-  def initialize(number_animals, number_plants, organism_factory)
-    @organism_factory = organism_factory
-
-    @animals = []
-    number_animals.times do |i|
-      animal = @organism_factory.new_animal("動物#{i}")
-      @animals << animal
-    end
-
-    @plants = []
-    number_plants.times do |i|
-      plant = @organism_factory.new_plant("植物#{i}")
-      @plants << plant
-    end
-  end
-end
-
-class DuckPond < Pond
-  def new_organism(type, name)
-    if type == :animal
-      Duck.new(name)
-    else
-      raise "Unknown organism type: #{type}"
-    end
-  end
-end
-
-class FrogPond < Pond
-  def new_organism(type, name)
-    if type == :animal
-      Frog.new(name)
-    else
-      raise "Unknown organism type: #{type}"
-    end
-  end
-end
-
-class DuckWaterLilyPond < Pond
-  def new_organism(type, name)
-    if type == :animal
-      Duck.new(name)
-    elsif type == :plant
-      WaterLily.new(name)
-    else
-      raise "Unknown organism type: #{type}"
-    end
-  end
-end
-
-class FrogAlgaePond < Pond
-  def new_organism(type, name)
-    if type == :animal
-      Frog.new(name)
-    elsif type == :plant
-      Algae.new(name)
-    else
-      raise "Unknown organism type: #{type}"
-    end
-  end
-end
-
-class PondOrganismFactory
-  def new_animal(name)
-    Duck.new(name)
-  end
-
-  def new_plant(name)
-    WaterLily.new(name)
-  end
-end
-
-class JungleOrganismFactory
-  def new_animal(name)
-    Tiger.new(name)
-  end
-
-  def new_plant(name)
-    Tree.new(name)
-  end
-end
-
-class OrganismFactory
-  def initialize(plant_class, animal_class)
-    @plant_class = plant_class
-    @animal_class = animal_class
-  end
-
-  def new_animal(name)
-    @animal_class.new(name)
-  end
-
-  def new_plant(name)
-    @plant_class.new(name)
-  end
-end
+require './frog'
+require './duck'
+require './water_lily'
+require './algae'
+require './tiger'
+require './tree'
+require './habitat'
+require './duck_pond'
+require './frog_pond'
+require './duck_water_lily_pond'
+require './frog_algae_pond'
+require './organism_factory'
 
 describe Pond do
   # 池には３匹のアヒルがいる
-  it 'should be three ducks.' do
+  it 'should have three ducks.' do
     output =<<EOS
 アヒル動物0がガーガー鳴いています。
 アヒル動物1がガーガー鳴いています。
@@ -237,7 +31,7 @@ EOS
   end
 
   # 池には３匹のカエルがいる
-  it 'should be three frogs.' do
+  it 'should have three frogs.' do
     output =<<EOS
 カエル動物0はゲロゲロと鳴いています。
 カエル動物1はゲロゲロと鳴いています。
@@ -272,7 +66,7 @@ EOS
   end
 
   # 池には３匹のカエルと１つの藻がいる
-  it 'should be three frogs and a algae.' do
+  it 'should have three frogs and a algae.' do
     output =<<EOS
 藻植物0は日光を浴びて育ちます。
 カエル動物0はゲロゲロと鳴いています。
@@ -293,7 +87,7 @@ end
 
 describe Habitat do
   # 生息環境には１匹のトラと４本の木がいる
-  it 'should be a tiger and four trees.' do
+  it 'should have a tiger and four trees.' do
     output =<<EOS
 樹木植物0が高く育っています。
 樹木植物1が高く育っています。
@@ -309,7 +103,7 @@ EOS
   end
 
   # 生息環境には２匹のアヒルと４つのスイレンがいる
-  it 'should be two ducks and four waterlilies.' do
+  it 'should have two ducks and four waterlilies.' do
     output =<<EOS
 スイレン植物0は浮きながら日光を浴びて育ちます。
 スイレン植物1は浮きながら日光を浴びて育ちます。
