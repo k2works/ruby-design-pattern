@@ -57,7 +57,11 @@ class WaterLily
 end
 
 class Pond
-  def initialize(number_animals, number_plants)
+  def initialize(number_animals, animal_class,
+                 number_plants, plant_class)
+    @animal_class = animal_class
+    @plant_class = plant_class
+
     @animals = []
     number_animals.times do |i|
       animal = new_organism(:animal,"動物#{i}")
@@ -76,6 +80,16 @@ class Pond
     @animals.each {|animal| animal.speak}
     @animals.each {|animal| animal.eat}
     @animals.each {|animal| animal.sleep}
+  end
+
+  def new_organism(type, name)
+    if type == :animal
+      @animal_class.new(name)
+    elsif type == :plant
+      @plant_class.new(name)
+    else
+      raise "Unknow organism type: #{type}"
+    end
   end
 end
 
@@ -137,7 +151,7 @@ describe Pond do
 アヒル動物1は静かに眠っています。
 アヒル動物2は静かに眠っています。
 EOS
-    pond = DuckPond.new(3,0)
+    pond = DuckPond.new(3,Duck,0,nil)
     proc{pond.simulate_one_day}.must_output output
   end
 
@@ -154,7 +168,7 @@ EOS
 カエル動物1は眠りません。一晩中ゲロゲロ鳴いています。
 カエル動物2は眠りません。一晩中ゲロゲロ鳴いています。
 EOS
-    pond = FrogPond.new(3,0)
+    pond = FrogPond.new(3,Frog,0,nil)
     proc{pond.simulate_one_day}.must_output output
   end
 
@@ -172,7 +186,7 @@ EOS
 アヒル動物1は静かに眠っています。
 アヒル動物2は静かに眠っています。
 EOS
-    pond = DuckWaterLilyPond.new(3,1)
+    pond = DuckWaterLilyPond.new(3,Duck,1,WaterLily)
     proc{pond.simulate_one_day}.must_output output
   end
 
@@ -190,7 +204,7 @@ EOS
 カエル動物1は眠りません。一晩中ゲロゲロ鳴いています。
 カエル動物2は眠りません。一晩中ゲロゲロ鳴いています。
 EOS
-    pond = FrogAlgaePond.new(3,1)
+    pond = FrogAlgaePond.new(3,Frog,1,Algae)
     proc{pond.simulate_one_day}.must_output output
   end
 
