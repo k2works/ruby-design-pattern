@@ -203,6 +203,21 @@ class JungleOrganismFactory
   end
 end
 
+class OrganismFactory
+  def initialize(plant_class, animal_class)
+    @plant_class = plant_class
+    @animal_class = animal_class
+  end
+
+  def new_animal(name)
+    @animal_class.new(name)
+  end
+
+  def new_plant(name)
+    @plant_class.new(name)
+  end
+end
+
 describe Pond do
   # 池には３匹のアヒルがいる
   it 'should be three ducks.' do
@@ -288,7 +303,8 @@ describe Habitat do
 トラ動物0は食べたいものを何でも食べます。
 トラ動物0は眠くなったら眠ります。
 EOS
-    habitat = Habitat.new(1,4,JungleOrganismFactory.new)
+    jungle_organism_factory = OrganismFactory.new(Tree,Tiger)
+    habitat = Habitat.new(1,4,jungle_organism_factory)
     proc{habitat.simulate_one_day}.must_output output
   end
 
@@ -306,7 +322,8 @@ EOS
 アヒル動物0は静かに眠っています。
 アヒル動物1は静かに眠っています。
 EOS
-    habitat = Habitat.new(2,4,PondOrganismFactory.new)
+    pond_organism_factory = OrganismFactory.new(WaterLily,Duck)
+    habitat = Habitat.new(2,4,pond_organism_factory)
     proc{habitat.simulate_one_day}.must_output output
   end
 end
