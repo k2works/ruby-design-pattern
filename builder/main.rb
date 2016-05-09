@@ -107,6 +107,10 @@ class DesktopBuilder < ComputerBuilder
   def add_hard_disk(size_in_mb)
     @computer.drives << Drive.new(:hard_disk, size_in_mb, true)
   end
+
+  def reset
+    @computer = DesktopComputer.new
+  end
 end
 
 class LaptopBuilder < ComputerBuilder
@@ -128,6 +132,10 @@ class LaptopBuilder < ComputerBuilder
 
   def add_hard_disk(size_in_mb)
     @computer.drives << LaptopDrive.new(:hard_disk, size_in_mb, true)
+  end
+
+  def reset
+    @computer = LaptopComputer.new
   end
 end
 
@@ -248,6 +256,26 @@ describe ComputerBuilder do
         proc {@builder.computer}.must_raise RuntimeError
       end
     end
+
+    describe 'when reuse builder.' do
+      before(:each) do
+        @builder = DesktopBuilder.new
+        @builder.add_hard_disk(10000)
+        @builder.turbo
+      end
+      # ２つの同じ構成のコンピュータを別インスタンスで作成する
+      it 'should build same computer but other instance.' do
+        computer1 = @builder.computer
+
+        @builder.reset
+        @builder = DesktopBuilder.new
+        @builder.add_hard_disk(10000)
+        @builder.turbo
+        computer2 = @builder.computer
+
+        computer1.wont_be_same_as computer2
+      end
+    end
   end
 
   describe 'when using laptop builder.' do
@@ -317,6 +345,26 @@ describe ComputerBuilder do
       it 'should raise exception when no drives.' do
         0.times {@builder.add_hard_disk(1000)}
         proc {@builder.computer}.must_raise RuntimeError
+      end
+    end
+
+    describe 'when reuse builder.' do
+      before(:each) do
+        @builder = LaptopBuilder.new
+        @builder.add_hard_disk(10000)
+        @builder.turbo
+      end
+      # ２つの同じ構成のコンピュータを別インスタンスで作成する
+      it 'should build same computer but other instance.' do
+        computer1 = @builder.computer
+
+        @builder.reset
+        @builder = LaptopBuilder.new
+        @builder.add_hard_disk(10000)
+        @builder.turbo
+        computer2 = @builder.computer
+
+        computer1.wont_be_same_as computer2
       end
     end
   end
