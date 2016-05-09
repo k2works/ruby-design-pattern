@@ -1,167 +1,16 @@
 require 'minitest/autorun'
-
-class Computer
-  attr_accessor :display
-  attr_accessor :motherboard
-  attr_accessor :drives
-
-  def initialize(display=:crt, motherboard=Motherboard.new, drives=[])
-    @motherboard = motherboard
-    @drives = drives
-    @display = display
-  end
-end
-
-class CPU
-  # CPU共通のコード・・・
-end
-
-class BasicCPU < CPU
-  # あまり高速でないCPUに関するたくさんのコード・・・
-end
-
-class TurboCPU < CPU
-  # 超高速のCPUに関するたくさんのコード・・・
-end
-
-class Motherboard
-  attr_accessor :cpu
-  attr_accessor :memory_size
-  def initialize(cpu=BasicCPU.new, memory_size=1000)
-    @cpu = cpu
-    @memory_size = memory_size
-  end
-end
-
-class Drive
-  attr_accessor :type # :hard_diskか:cdか:dvd
-  attr_accessor :size # MBで
-  attr_accessor :writable # ドライブが書き込み可能ならばtrue
-
-  def initialize(type, size, writable)
-    @type = type
-    @size = size
-    @writable = writable
-  end
-end
-
-class DesktopComputer < Computer
-  # ディスクトップの詳細に関するたくさんのコード
-end
-
-class LaptopDrive < Drive
-
-  # ラップトップ
-end
-
-class LaptopComputer < Computer
-  def initialize( motherboard=Motherboard.new, drives=[])
-    super(:lcd, motherboard, drives)
-  end
-
-  # ラップトップの詳細に関するたくさんのコード
-
-end
-
-class ComputerBuilder
-  attr_accessor :computer
-
-  def initialize
-    @computer = Computer.new
-  end
-
-  def turbo(has_turbo_cpu=true)
-    @computer.motherboard.cpu = TurboCPU.new
-  end
-
-  def memory_size=(size_in_mb)
-    @computer.motherboard.memory_size = size_in_mb
-  end
-
-  def computer
-    raise "Not enough memory" if @computer.motherboard.memory_size < 250
-    raise "Too many drives" if @computer.drives.size > 4
-    hard_disk = @computer.drives.find {|drive| drive.type == :hard_disk}
-    raise "No disk." unless hard_disk
-    @computer
-  end
-end
-
-class DesktopBuilder < ComputerBuilder
-  def initialize
-    @computer = DesktopComputer.new
-  end
-
-  def display=(display)
-    @computer.display=display
-  end
-
-  def add_cd(writer=false)
-    @computer.drives << Drive.new(:cd, 760, writer)
-  end
-
-  def add_dvd(writer=false)
-    @computer.drives << Drive.new(:dvd, 4000, writer)
-  end
-
-  def add_hard_disk(size_in_mb)
-    @computer.drives << Drive.new(:hard_disk, size_in_mb, true)
-  end
-
-  def reset
-    @computer = DesktopComputer.new
-  end
-
-  def method_missing(name, *args)
-    words = name.to_s.split("_")
-    return super(name, *args) unless words.shift == 'add'
-    words.each do |word|
-      next if word == 'and'
-      add_cd if word == 'cd'
-      add_dvd if word == 'dvd'
-      add_hard_disk(100000) if word == 'harddisk'
-      turbo if word == 'turbo'
-    end
-  end
-end
-
-class LaptopBuilder < ComputerBuilder
-  def initialize
-    @computer = LaptopComputer.new
-  end
-
-  def display=(display)
-    raise "Laptop display must be lcd" unless display == :lcd
-  end
-
-  def add_cd(writer=false)
-    @computer.drives << LaptopDrive.new(:cd, 760, writer)
-  end
-
-  def add_dvd(writer=false)
-    @computer.drives << LaptopDrive.new(:dvd, 4000, writer)
-  end
-
-  def add_hard_disk(size_in_mb)
-    @computer.drives << LaptopDrive.new(:hard_disk, size_in_mb, true)
-  end
-
-  def reset
-    @computer = LaptopComputer.new
-  end
-
-  def method_missing(name, *args)
-    words = name.to_s.split("_")
-    return super(name, *args) unless words.shift == 'add'
-    words.each do |word|
-      next if word == 'and'
-      add_cd if word == 'cd'
-      add_dvd if word == 'dvd'
-      add_hard_disk(100000) if word == 'harddisk'
-      turbo if word == 'turbo'
-    end
-  end
-end
+require './cpu'
+require './basic_cpu'
+require './turbo_cpu'
+require './motherboard'
+require './drive'
+require './laptop_drive'
+require './computer'
+require './desktop_computer'
+require './laptop_computer'
+require './computer_builder'
+require './desktop_builder'
+require './laptop_builder'
 
 describe Computer do
   describe 'when not using builder.' do
@@ -428,4 +277,5 @@ describe ComputerBuilder do
       end
     end
   end
+
 end
