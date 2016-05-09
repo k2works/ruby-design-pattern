@@ -77,6 +77,14 @@ class ComputerBuilder
   def memory_size=(size_in_mb)
     @computer.motherboard.memory_size = size_in_mb
   end
+
+  def computer
+    raise "Not enough memory" if @computer.motherboard.memory_size < 250
+    raise "Too many drives" if @computer.drives.size > 4
+    hard_disk = @computer.drives.find {|drive| drive.type == :hard_disk}
+    raise "No disk." unless hard_disk
+    @computer
+  end
 end
 
 class DesktopBuilder < ComputerBuilder
@@ -215,6 +223,31 @@ describe ComputerBuilder do
       computer.drives[2].size.must_equal 100000
       computer.drives[2].writable.must_equal true
     end
+
+    describe 'when incomplete constitution.' do
+      before(:each) do
+        @builder = DesktopBuilder.new
+      end
+
+      # メモリサイズが足りなければ例外を出す
+      it 'should raise exception when not enough memory.' do
+        @builder.add_hard_disk(1000)
+        @builder.memory_size = 249
+        proc {@builder.computer}.must_raise RuntimeError
+      end
+
+      # ドライブ数が多過げれば例外を出す
+      it 'should raise exception when too many drives.' do
+        5.times {@builder.add_hard_disk(1000)}
+        proc {@builder.computer}.must_raise RuntimeError
+      end
+
+      # ドライブ数が０ならば例外を出す
+      it 'should raise exception when no drives.' do
+        0.times {@builder.add_hard_disk(1000)}
+        proc {@builder.computer}.must_raise RuntimeError
+      end
+    end
   end
 
   describe 'when using laptop builder.' do
@@ -260,6 +293,31 @@ describe ComputerBuilder do
       computer.drives[2].type.must_equal :hard_disk
       computer.drives[2].size.must_equal 100000
       computer.drives[2].writable.must_equal true
+    end
+
+    describe 'when incomplete constitution.' do
+      before(:each) do
+        @builder = LaptopBuilder.new
+      end
+
+      # メモリサイズが足りなければ例外を出す
+      it 'should raise exception when not enough memory.' do
+        @builder.add_hard_disk(1000)
+        @builder.memory_size = 249
+        proc {@builder.computer}.must_raise RuntimeError
+      end
+
+      # ドライブ数が多過げれば例外を出す
+      it 'should raise exception when too many drives.' do
+        5.times {@builder.add_hard_disk(1000)}
+        proc {@builder.computer}.must_raise RuntimeError
+      end
+
+      # ドライブ数が０ならば例外を出す
+      it 'should raise exception when no drives.' do
+        0.times {@builder.add_hard_disk(1000)}
+        proc {@builder.computer}.must_raise RuntimeError
+      end
     end
   end
 end
