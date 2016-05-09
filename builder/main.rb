@@ -45,6 +45,24 @@ class Drive
   end
 end
 
+class DesktopComputer < Computer
+  # ディスクトップの詳細に関するたくさんのコード
+end
+
+class LaptopDrive < Drive
+
+  # ラップトップ
+end
+
+class LaptopComputer < Computer
+  def initialize( motherboard=Motherboard.new, drives=[])
+    super(:lcd, motherboard, drives)
+  end
+
+  # ラップトップの詳細に関するたくさんのコード
+
+end
+
 class ComputerBuilder
   attr_accessor :computer
 
@@ -56,12 +74,18 @@ class ComputerBuilder
     @computer.motherboard.cpu = TurboCPU.new
   end
 
-  def display=(display)
-    @computer.display=display
-  end
-
   def memory_size=(size_in_mb)
     @computer.motherboard.memory_size = size_in_mb
+  end
+end
+
+class DesktopBuilder < ComputerBuilder
+  def initialize
+    @computer = DesktopComputer.new
+  end
+
+  def display=(display)
+    @computer.display=display
   end
 
   def add_cd(writer=false)
@@ -74,6 +98,28 @@ class ComputerBuilder
 
   def add_hard_disk(size_in_mb)
     @computer.drives << Drive.new(:hard_disk, size_in_mb, true)
+  end
+end
+
+class LaptopBuilder < ComputerBuilder
+  def initialize
+    @computer = LaptopComputer.new
+  end
+
+  def display=(display)
+    raise "Laptop display must be lcd" unless display == :lcd
+  end
+
+  def add_cd(writer=false)
+    @computer.drives << LaptopDrive.new(:cd, 760, writer)
+  end
+
+  def add_dvd(writer=false)
+    @computer.drives << LaptopDrive.new(:dvd, 4000, writer)
+  end
+
+  def add_hard_disk(size_in_mb)
+    @computer.drives << LaptopDrive.new(:hard_disk, size_in_mb, true)
   end
 end
 
@@ -125,9 +171,9 @@ end
 
 describe ComputerBuilder do
 
-  describe 'when using builder.' do
+  describe 'when using desktop builder.' do
     before(:each) do
-      @builder = ComputerBuilder.new
+      @builder = DesktopBuilder.new
       @builder.turbo
       @builder.add_cd(true)
       @builder.add_dvd
@@ -138,6 +184,52 @@ describe ComputerBuilder do
     it 'should have CRT display.' do
       computer = @builder.computer
       computer.display.must_equal :crt
+    end
+
+    # TurboCPUを搭載している
+    it 'should have TurboCPU on motherboard.' do
+      computer = @builder.computer
+      computer.motherboard.cpu.must_be_instance_of TurboCPU
+    end
+
+    # 760MBの書き込み可能CDドライブを搭載している
+    it 'should have 760MB writable cd drive.' do
+      computer = @builder.computer
+      computer.drives[0].type.must_equal :cd
+      computer.drives[0].size.must_equal 760
+      computer.drives[0].writable.must_equal true
+    end
+
+    # 4GBの読み込み専用DVDドライブを搭載している
+    it 'should have 4GB read only dvd drive.' do
+      computer = @builder.computer
+      computer.drives[1].type.must_equal :dvd
+      computer.drives[1].size.must_equal 4000
+      computer.drives[1].writable.must_equal false
+    end
+
+    # 100GBの書き込み可能ハードディスクドライブを搭載している
+    it 'should have 100GB writable hard drive.' do
+      computer = @builder.computer
+      computer.drives[2].type.must_equal :hard_disk
+      computer.drives[2].size.must_equal 100000
+      computer.drives[2].writable.must_equal true
+    end
+  end
+
+  describe 'when using laptop builder.' do
+    before(:each) do
+      @builder = LaptopBuilder.new
+      @builder.turbo
+      @builder.add_cd(true)
+      @builder.add_dvd
+      @builder.add_hard_disk(100000)
+    end
+
+    # LCDディスプレイを搭載している
+    it 'should have LCD display.' do
+      computer = @builder.computer
+      computer.display.must_equal :lcd
     end
 
     # TurboCPUを搭載している
