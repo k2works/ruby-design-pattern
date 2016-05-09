@@ -111,6 +111,18 @@ class DesktopBuilder < ComputerBuilder
   def reset
     @computer = DesktopComputer.new
   end
+
+  def method_missing(name, *args)
+    words = name.to_s.split("_")
+    return super(name, *args) unless words.shift == 'add'
+    words.each do |word|
+      next if word == 'and'
+      add_cd if word == 'cd'
+      add_dvd if word == 'dvd'
+      add_hard_disk(100000) if word == 'harddisk'
+      turbo if word == 'turbo'
+    end
+  end
 end
 
 class LaptopBuilder < ComputerBuilder
@@ -136,6 +148,18 @@ class LaptopBuilder < ComputerBuilder
 
   def reset
     @computer = LaptopComputer.new
+  end
+
+  def method_missing(name, *args)
+    words = name.to_s.split("_")
+    return super(name, *args) unless words.shift == 'add'
+    words.each do |word|
+      next if word == 'and'
+      add_cd if word == 'cd'
+      add_dvd if word == 'dvd'
+      add_hard_disk(100000) if word == 'harddisk'
+      turbo if word == 'turbo'
+    end
   end
 end
 
@@ -232,6 +256,24 @@ describe ComputerBuilder do
       computer.drives[2].writable.must_equal true
     end
 
+    # フル構成でセットアップする
+    it 'should build full components.' do
+      builder = DesktopBuilder.new
+      builder.add_turbo_and_cd_and_dvd_and_harddisk
+      computer = builder.computer
+
+      computer.motherboard.cpu.must_be_instance_of TurboCPU
+      computer.drives[0].type.must_equal :cd
+      computer.drives[0].size.must_equal 760
+      computer.drives[0].writable.must_equal false
+      computer.drives[1].type.must_equal :dvd
+      computer.drives[1].size.must_equal 4000
+      computer.drives[1].writable.must_equal false
+      computer.drives[2].type.must_equal :hard_disk
+      computer.drives[2].size.must_equal 100000
+      computer.drives[2].writable.must_equal true
+    end
+
     describe 'when incomplete constitution.' do
       before(:each) do
         @builder = DesktopBuilder.new
@@ -318,6 +360,24 @@ describe ComputerBuilder do
     # 100GBの書き込み可能ハードディスクドライブを搭載している
     it 'should have 100GB writable hard drive.' do
       computer = @builder.computer
+      computer.drives[2].type.must_equal :hard_disk
+      computer.drives[2].size.must_equal 100000
+      computer.drives[2].writable.must_equal true
+    end
+
+    # フル構成でセットアップする
+    it 'should build full components.' do
+      builder = LaptopBuilder.new
+      builder.add_turbo_and_cd_and_dvd_and_harddisk
+      computer = builder.computer
+
+      computer.motherboard.cpu.must_be_instance_of TurboCPU
+      computer.drives[0].type.must_equal :cd
+      computer.drives[0].size.must_equal 760
+      computer.drives[0].writable.must_equal false
+      computer.drives[1].type.must_equal :dvd
+      computer.drives[1].size.must_equal 4000
+      computer.drives[1].writable.must_equal false
       computer.drives[2].type.must_equal :hard_disk
       computer.drives[2].size.must_equal 100000
       computer.drives[2].writable.must_equal true
