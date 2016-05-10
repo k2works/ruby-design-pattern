@@ -58,6 +58,42 @@ class Writable < Expression
   end
 end
 
+class Not < Expression
+  def initialize(expression)
+    @expression = expression
+  end
+
+  def evaluate(dir)
+    All.new.evaluate(dir) - @expression.evaluate(dir)
+  end
+end
+
+class Or < Expression
+  def initialize(expression1, expression2)
+    @expression1 = expression1
+    @expression2 = expression2
+  end
+
+  def evaluate(dir)
+    result1 = @expression1.evaluate(dir)
+    result2 = @expression2.evaluate(dir)
+    (result1 + result2).sort.uniq
+  end
+end
+
+class And < Expression
+  def initialize(expression1, expression2)
+    @expression1 = expression1
+    @expression2 = expression2
+  end
+
+  def evaluate(dir)
+    result1 = @expression1.evaluate(dir)
+    result2 = @expression2.evaluate(dir)
+    (result1 & result2).sort.uniq
+  end
+end
+
 describe All do
   # テストディレクリにファイルが存在する
   it 'should be exist file in directory.' do
@@ -91,5 +127,48 @@ describe Writable do
     files = Writable.new
     results = files.evaluate('./test_dir')
     results.wont_be_empty
+  end
+end
+
+describe Not do
+  # テストディレクリにファイルが存在しない
+  it 'should not be exist file in directory.' do
+    expr_not_writable = Not.new(Writable.new)
+    readonly_files = expr_not_writable.evaluate('./test_dir')
+    readonly_files.must_be_empty
+  end
+
+  # テストディレクリにファイルが存在する
+  it 'should be exist file in directory.' do
+    expr_not_writable = Not.new(Bigger.new(100))
+    readonly_files = expr_not_writable.evaluate('./test_dir')
+    readonly_files.wont_be_empty
+  end
+
+  # テストディレクリにファイルが存在しない
+  it 'should not be exist file in directory.' do
+    expr_not_writable = Not.new(FileName.new('*.txt'))
+    readonly_files = expr_not_writable.evaluate('./test_dir')
+    readonly_files.must_be_empty
+  end
+end
+
+describe Or do
+  # テストディレクリにファイルが存在する
+  it 'should be exist file in directory.' do
+    big_or_txt_expr = Or.new(Bigger.new(1000), FileName.new('*.txt'))
+    big_or_txt = big_or_txt_expr.evaluate('./test_dir')
+    big_or_txt.wont_be_empty
+  end
+end
+
+describe And do
+  # テストディレクリにファイルが存在しない
+  it 'should not be exist file in directory.' do
+    complex_expression = And.new(
+                                And.new(Bigger.new(0),
+                                        FileName.new('*.txt')),
+                                Not.new(Writable.new))
+    complex_expression.evaluate('./test_dir').must_be_empty
   end
 end
