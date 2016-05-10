@@ -2,7 +2,33 @@ require 'minitest/autorun'
 require 'find'
 
 class Expression
-  # 一般的な式のコードはここに追加されます・・・
+  def |(other)
+    Or.new(self, other)
+  end
+
+  def &(other)
+    And.new(self, other)
+  end
+end
+
+def all
+  All.new
+end
+
+def bigger(size)
+  Bigger.new(size)
+end
+
+def file_name(pattern)
+  FileName.new(pattern)
+end
+
+def except(expression)
+  Not.new(expression)
+end
+
+def writable
+  Writable.new
 end
 
 class All < Expression
@@ -226,5 +252,21 @@ describe Parser do
     parser = Parser.new "and (and(bigger 10) (filename *.txt)) writable"
     ast = parser.expression
     ast.evaluate('./test_dir').wont_be_empty
+  end
+end
+
+describe Expression do
+  # テストディレクリにファイルが存在する
+  it 'should be exist file in directory.' do
+    big_or_txt_expr = (Bigger.new(2000) & Not.new(Writable.new)) | FileName.new("*.txt")
+    big_or_txt = big_or_txt_expr.evaluate('./test_dir')
+    big_or_txt.wont_be_empty
+  end
+
+  # テストディレクリにファイルが存在する
+  it 'should be exist file in directory.' do
+    big_or_txt_expr = (bigger(2000) & except(writable)) | file_name("*.txt")
+    big_or_txt = big_or_txt_expr.evaluate('./test_dir')
+    big_or_txt.wont_be_empty
   end
 end
