@@ -32,6 +32,32 @@ class FileName < Expression
   end
 end
 
+class Bigger < Expression
+  def initialize(size)
+    @size = size
+  end
+
+  def evaluate(dir)
+    results = []
+    Find.find(dir) do |p|
+      next unless File.file?(p)
+      results << p if(File.size(p) > @size)
+    end
+    results
+  end
+end
+
+class Writable < Expression
+  def evaluate(dir)
+    results = []
+    Find.find(dir) do |p|
+      next unless File.file?(p)
+      results << p if( File.writable?(p) )
+    end
+    results
+  end
+end
+
 describe All do
   # テストディレクリにファイルが存在する
   it 'should be exist file in directory.' do
@@ -44,8 +70,26 @@ end
 describe FileName do
   # テストディレクリにファイルが存在する
   it 'should be exist file in directory.' do
-    file = FileName.new('test.*')
-    results = file.evaluate('./test_dir')
+    files = FileName.new('test.*')
+    results = files.evaluate('./test_dir')
+    results.wont_be_empty
+  end
+end
+
+describe Bigger do
+  # テストディレクリにファイルが存在する
+  it 'should be exist file in directory.' do
+    files = Bigger.new(100)
+    results = files.evaluate('./test_dir')
+    results.wont_be_empty
+  end
+end
+
+describe Writable do
+  # テストディレクリにファイルが存在する
+  it 'should be exist file in directory.' do
+    files = Writable.new
+    results = files.evaluate('./test_dir')
     results.wont_be_empty
   end
 end
